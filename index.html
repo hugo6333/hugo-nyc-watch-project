@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hugo's NYC Watch Project</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌚</text></svg>" />
+<link rel="stylesheet" href="styles.css?v=6" />
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-top">
+      <div class="brand">
+        <h1>Hugo's NYC Watch Project</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="contact-box">
+          <span class="contact-box-label">Contact</span>
+          <a href="mailto:hugochen@stern.nyu.edu" class="contact-link">✉️ hugochen@stern.nyu.edu</a>
+          <span class="contact-divider">·</span>
+          <a href="https://instagram.com/hugochen63" target="_blank" rel="noopener">Instagram: @hugochen63</a>
+        </div>
+        <button id="coffeeBtn" class="btn btn-secondary">☕ Coffee on Me</button>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="aboutBtn" class="btn btn-about">About</button>
+      <button id="sellBtn" class="btn btn-secondary">Sell</button>
+      <button id="tradeInBtn" class="btn btn-secondary">🔁 Trade In</button>
+      <button id="sourceBtn" class="btn btn-secondary">🔎 Source</button>
+      <button id="faqBtn" class="btn btn-secondary">❓ FAQ</button>
+      <button id="cartBtn" class="btn btn-secondary">🛒 Cart</button>
+      <button id="addBtn" class="btn btn-primary">+ Add Watch</button>
+      <div class="menu">
+        <button id="menuBtn" class="btn btn-icon" aria-label="More options">⋮</button>
+        <div id="menuDropdown" class="menu-dropdown hidden">
+          <button id="exportBtn">Export JSON</button>
+          <label for="importInput" id="importLabel" class="hidden">Import JSON</label>
+          <input type="file" id="importInput" accept="application/json" hidden />
+          <button id="themeBtn">Toggle Theme</button>
+          <div class="menu-divider"></div>
+          <button id="ownerToggleBtn">🔐 Owner Login</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <p id="tradeInBanner" class="success-banner hidden">✅ Trade-in submission received — I'll be in touch soon! <button type="button" id="dismissTradeInBanner" class="banner-dismiss" aria-label="Dismiss">✕</button></p>
+
+  <section class="toolbar">
+    <input id="searchInput" type="search" placeholder="Search by name, brand, reference…" />
+    <select id="sortSelect">
+      <option value="dateAdded-desc">Newest added</option>
+      <option value="dateAdded-asc">Oldest added</option>
+      <option value="name-asc">Name (A–Z)</option>
+      <option value="name-desc">Name (Z–A)</option>
+      <option value="year-desc">Year (newest)</option>
+      <option value="year-asc">Year (oldest)</option>
+      <option value="price-desc">Price (high to low)</option>
+      <option value="price-asc">Price (low to high)</option>
+    </select>
+    <select id="filterBox">
+      <option value="">All box status</option>
+      <option value="Yes">Box: Yes</option>
+      <option value="No">Box: No</option>
+    </select>
+    <select id="filterPapers">
+      <option value="">All papers status</option>
+      <option value="Yes">Papers: Yes</option>
+      <option value="No">Papers: No</option>
+    </select>
+    <select id="filterCondition">
+      <option value="">All conditions</option>
+      <option value="Mint">Mint</option>
+      <option value="Excellent">Excellent</option>
+      <option value="Good">Good</option>
+      <option value="Fair">Fair</option>
+    </select>
+    <select id="filterSaleStatus">
+      <option value="">All sale status</option>
+      <option value="Not for Sale">Not for Sale</option>
+      <option value="For Sale">For Sale</option>
+      <option value="Pending">Pending</option>
+      <option value="Sold">Sold</option>
+    </select>
+    <select id="filterPriceRange">
+      <option value="">All prices</option>
+      <option value="0-5000">Under $5,000</option>
+      <option value="5000-10000">$5,000 – $10,000</option>
+      <option value="10000-15000">$10,000 – $15,000</option>
+      <option value="15000-25000">$15,000 – $25,000</option>
+      <option value="25000-">$25,000+</option>
+    </select>
+    <button id="favoritesToggleBtn" class="btn btn-secondary" type="button">🤍 Favorites</button>
+  </section>
+
+  <section class="stats" id="stats"></section>
+  <button id="soldArchiveBtn" class="btn btn-link hidden" type="button">🏆 View Recently Sold</button>
+
+  <main id="grid" class="grid"></main>
+
+  <p id="emptyState" class="empty-state hidden">
+    No watches yet. Click <strong>+ Add Watch</strong> to add your first piece.
+  </p>
+
+  <section class="trust-banner">
+    <span class="trust-item">🚚 <strong>Free Shipping</strong></span>
+    <span class="trust-sep">·</span>
+    <span class="trust-item">Also active on eBay: <a href="https://www.ebay.com/usr/huch_3217" target="_blank" rel="noopener"><strong>huch_3217</strong> ↗</a></span>
+    <span class="trust-sep">·</span>
+    <span class="trust-item" id="paymentMethodsLine">💳 <strong>Accepted:</strong> Cash in person · Venmo · Zelle · PayPal (Friends &amp; Family)</span>
+  </section>
+
+  <footer class="site-footer">
+    © 2026 Hugo Chen. All rights reserved. Listings subject to prior sale. Prices in USD.
+  </footer>
+
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="modalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Watch</h2>
+      <button id="closeModalBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <form id="watchForm" class="modal-body">
+      <input type="hidden" id="watchId" />
+
+      <div class="form-row">
+        <label for="imageInput">Photos</label>
+        <div id="imageGalleryEdit" class="image-gallery-edit"></div>
+        <input type="file" id="imageInput" accept="image/*" multiple />
+        <p class="field-hint">First photo is the cover image shown on the main page. Click a thumbnail to make it the cover.</p>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="brandInput">Brand *</label>
+          <input type="text" id="brandInput" placeholder="e.g. Jaeger-LeCoultre" required />
+        </div>
+        <div class="form-row">
+          <label for="modelInput">Model *</label>
+          <input type="text" id="modelInput" placeholder="e.g. Master Control Triple Date Moonphase" required />
+        </div>
+        <div class="form-row">
+          <label for="refInput">Reference #</label>
+          <input type="text" id="refInput" placeholder="e.g. Q1558420" />
+        </div>
+        <div class="form-row">
+          <label for="yearInput">Year</label>
+          <input type="number" id="yearInput" placeholder="e.g. 2022" min="1800" max="2100" />
+        </div>
+        <div class="form-row">
+          <label for="boxSelect">Box</label>
+          <select id="boxSelect">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="papersSelect">Papers</label>
+          <select id="papersSelect">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="conditionSelect">Condition</label>
+          <select id="conditionSelect">
+            <option value="Mint">Mint</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="priceInput">Price (USD)</label>
+          <div class="price-input-row">
+            <input type="number" id="priceInput" placeholder="e.g. 7000" min="0" step="1" />
+            <div class="contact-box contact-box-compact">
+              <a href="mailto:hugochen@stern.nyu.edu" class="contact-link">✉️ hugochen@stern.nyu.edu</a>
+              <span class="contact-divider">·</span>
+              <a href="https://instagram.com/hugochen63" target="_blank" rel="noopener">Instagram: @hugochen63</a>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="saleStatusSelect">Sale status</label>
+          <select id="saleStatusSelect">
+            <option value="Not for Sale">Not for Sale</option>
+            <option value="For Sale">For Sale</option>
+            <option value="Pending">Pending</option>
+            <option value="Sold">Sold</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="notesInput">Notes</label>
+        <textarea id="notesInput" rows="3" placeholder="Condition, purchase details, service history…"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="deleteBtn" class="btn btn-danger hidden">Delete</button>
+        <div class="modal-footer-right">
+          <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Watch</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- About Me Modal -->
+<div id="aboutModalOverlay" class="modal-overlay hidden">
+  <div class="modal about-modal">
+    <div class="modal-header">
+      <h2>About Me</h2>
+      <button id="closeAboutBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body about-body">
+      <p>Hi, I'm Hugo 👋 — I split my time between Taiwan and the US, and I'm currently a student at NYU Stern.</p>
+      <p>I've been <strong>deeply into watches</strong> for years — researching movements, references, and market values obsessively before every purchase (and every sale). Watches here aren't flipped sight-unseen; I do my homework on each piece.</p>
+      <p>✅ <strong>Authenticity guaranteed</strong> on everything listed — every watch is personally inspected and verified by me before it goes up.</p>
+      <p>🚚 Free shipping on all sales, and 📍 NYC meetups are always welcome if you'd rather see a piece in person.</p>
+      <p>I'm also active on eBay — you can check my listings and feedback under <a href="https://www.ebay.com/usr/huch_3217" target="_blank" rel="noopener"><strong>huch_3217</strong> ↗</a>.</p>
+      <p>Questions on anything here? Reach out any time:</p>
+      <div class="contact-box">
+        <span class="contact-box-label">Contact</span>
+        <a href="mailto:hugochen@stern.nyu.edu" class="contact-link">✉️ hugochen@stern.nyu.edu</a>
+        <span class="contact-divider">·</span>
+        <a href="https://instagram.com/hugochen63" target="_blank" rel="noopener">Instagram: @hugochen63</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Coffee On Me Modal -->
+<div id="coffeeModalOverlay" class="modal-overlay hidden">
+  <div class="modal about-modal">
+    <div class="modal-header">
+      <h2>☕ Coffee on Me</h2>
+      <button id="closeCoffeeBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body about-body">
+      <p>If you're in NYC, let's grab a coffee — <strong>my treat</strong> — and talk watches. Whether you're curious about a piece, want a second opinion, or just love the hobby, I'm always happy to meet up.</p>
+      <p>Reach out and we'll find a time:</p>
+      <div class="contact-box">
+        <span class="contact-box-label">Contact</span>
+        <a href="mailto:hugochen@stern.nyu.edu" class="contact-link">✉️ hugochen@stern.nyu.edu</a>
+        <span class="contact-divider">·</span>
+        <a href="https://instagram.com/hugochen63" target="_blank" rel="noopener">Instagram: @hugochen63</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sell Your Watch Modal -->
+<div id="sellModalOverlay" class="modal-overlay hidden">
+  <div class="modal about-modal">
+    <div class="modal-header">
+      <h2>Sell Your Watch</h2>
+      <button id="closeSellBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body about-body">
+      <p>Thinking about selling? Send a few photos (dial, case-back, and box/papers if you have them) over email or Instagram DM, and I'll get back to you with a <strong>fair, no-obligation price estimate</strong> — usually within a day.</p>
+      <p>📍 Since I'm based in <strong>NYC</strong>, a face-to-face meetup is easy and convenient — you can hand it over in person and get paid on the spot, no shipping risk on your end.</p>
+      <p>📸 Send photos here:</p>
+      <div class="contact-box">
+        <span class="contact-box-label">Contact</span>
+        <a href="mailto:hugochen@stern.nyu.edu" class="contact-link">✉️ hugochen@stern.nyu.edu</a>
+        <span class="contact-divider">·</span>
+        <a href="https://instagram.com/hugochen63" target="_blank" rel="noopener">Instagram: @hugochen63</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Source a Watch Modal -->
+<div id="sourceModalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🔎 Source a Watch</h2>
+      <button id="closeSourceBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <form id="sourceForm" class="modal-body">
+      <p class="field-hint">Looking for something specific? Tell me what you want and I'll keep an eye out — this goes straight to my inbox.</p>
+      <div class="form-row">
+        <label for="sourceModelInput">Model / Brand you're looking for *</label>
+        <input type="text" id="sourceModelInput" name="Model / Brand" placeholder="e.g. Jaeger-LeCoultre Master Control Triple Date Moonphase" required />
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="sourceBoxSelect">Box</label>
+          <select id="sourceBoxSelect" name="Box preference">
+            <option value="Doesn't matter">Doesn't matter</option>
+            <option value="Must have box">Must have box</option>
+            <option value="No box needed">No box needed</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="sourcePapersSelect">Papers</label>
+          <select id="sourcePapersSelect" name="Papers preference">
+            <option value="Doesn't matter">Doesn't matter</option>
+            <option value="Must have papers">Must have papers</option>
+            <option value="No papers needed">No papers needed</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="sourcePriceSelect">Price range</label>
+          <select id="sourcePriceSelect" name="Price range">
+            <option value="Not sure yet">Not sure yet</option>
+            <option value="Under $5,000">Under $5,000</option>
+            <option value="$5,000 – $10,000">$5,000 – $10,000</option>
+            <option value="$10,000 – $15,000">$10,000 – $15,000</option>
+            <option value="$15,000 – $25,000">$15,000 – $25,000</option>
+            <option value="$25,000+">$25,000+</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="sourceEmailInput">Your email *</label>
+          <input type="email" id="sourceEmailInput" name="Reply-to email" placeholder="so I can get back to you" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="sourceDetailsInput">Anything else? (dial color, size, condition…)</label>
+        <textarea id="sourceDetailsInput" name="Additional details" rows="3" placeholder="Optional details"></textarea>
+      </div>
+      <p id="sourceFormStatus" class="form-status hidden"></p>
+      <div class="modal-footer">
+        <span></span>
+        <div class="modal-footer-right">
+          <button type="button" id="sourceCancelBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="sourceSubmitBtn" class="btn btn-primary">Send Request</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- FAQ Modal (DRAFT COPY — please review/edit, see chat) -->
+<div id="faqModalOverlay" class="modal-overlay hidden">
+  <div class="modal about-modal">
+    <div class="modal-header">
+      <h2>❓ FAQ</h2>
+      <button id="closeFaqBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body about-body faq-body">
+      <details open>
+        <summary>How do I know a watch is authentic?</summary>
+        <p>Every watch is personally inspected and verified by me before it's listed — see the About Me section for my background. I also have an active trading history on eBay under <a href="https://www.ebay.com/usr/huch_3217" target="_blank" rel="noopener">huch_3217 ↗</a> if you'd like to see my track record.</p>
+      </details>
+      <details>
+        <summary>What condition are the watches in?</summary>
+        <p>Each listing shows a condition rating (Mint / Excellent / Good / Fair) plus notes on wear, service history, and anything else worth knowing.</p>
+      </details>
+      <details>
+        <summary>Do you ship, or can we meet in person?</summary>
+        <p>Both. Free shipping is included on every sale, and since I'm based in NYC, in-person meetups are easy and encouraged if you'd rather inspect the watch and pay on the spot.</p>
+      </details>
+      <details>
+        <summary>What payment methods do you accept?</summary>
+        <p>Venmo, Zelle, PayPal (Friends &amp; Family), or cash for in-person meetups.</p>
+      </details>
+      <details>
+        <summary>Do you buy watches or help me find one?</summary>
+        <p>Yes to both — see "Sell Your Watch" if you're looking to sell, or "Source a Watch" if you're hunting for something specific.</p>
+      </details>
+      <p class="field-hint">Still have a question? <a href="mailto:hugochen@stern.nyu.edu">Email me</a> or DM <a href="https://instagram.com/hugochen63" target="_blank" rel="noopener">@hugochen63</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- View Watch Modal (guest-facing read-only detail view, shareable via #watch=<id>) -->
+<div id="viewModalOverlay" class="modal-overlay hidden">
+  <div class="modal view-modal">
+    <div class="modal-header">
+      <h2 id="viewModalTitle">Watch</h2>
+      <button id="closeViewBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body view-body">
+      <div id="viewGallery" class="view-gallery"></div>
+      <div class="view-details">
+        <div class="card-brand" id="viewBrand"></div>
+        <div class="card-model view-model" id="viewModel"></div>
+        <div class="card-meta" id="viewMeta"></div>
+        <div class="card-price view-price" id="viewPrice"></div>
+        <div class="badges" id="viewBadges"></div>
+        <p class="view-notes" id="viewNotes"></p>
+        <div class="meetup-note">📍 <strong>NYC meetups available &amp; encouraged</strong></div>
+        <div class="shipping-note">🚚 <strong>Free shipping</strong></div>
+        <div class="view-actions">
+          <button type="button" id="viewFavoriteBtn" class="btn btn-secondary">🤍 Save to Favorites</button>
+          <button type="button" id="viewShareBtn" class="btn btn-secondary">🔗 Share</button>
+          <button type="button" id="viewCartBtn" class="btn btn-secondary">🛒 Add to Cart</button>
+          <button type="button" id="viewOfferBtn" class="btn btn-primary">💰 Make an Offer</button>
+        </div>
+        <p id="viewShareStatus" class="form-status hidden"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Make an Offer Modal -->
+<div id="offerModalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>💰 Make an Offer</h2>
+      <button id="closeOfferBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <form id="offerForm" class="modal-body">
+      <p class="field-hint" id="offerWatchLabel">For: —</p>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="offerAmountInput">Your offer (USD) *</label>
+          <input type="number" id="offerAmountInput" name="Offer amount" min="0" step="1" required />
+        </div>
+        <div class="form-row">
+          <label for="offerEmailInput">Your email *</label>
+          <input type="email" id="offerEmailInput" name="Reply-to email" placeholder="so I can get back to you" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="offerMessageInput">Message (optional)</label>
+        <textarea id="offerMessageInput" name="Message" rows="3" placeholder="Anything else you'd like me to know"></textarea>
+      </div>
+      <p id="offerFormStatus" class="form-status hidden"></p>
+      <div class="modal-footer">
+        <span></span>
+        <div class="modal-footer-right">
+          <button type="button" id="offerCancelBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="offerSubmitBtn" class="btn btn-primary">Send Offer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Trade In Modal — real file uploads need a native multipart form (not AJAX), so this one
+     actually navigates to FormSubmit and back via the hidden _next field. -->
+<div id="tradeInModalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🔁 Trade In Your Watch</h2>
+      <button id="closeTradeInBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <form id="tradeInForm" class="modal-body" action="https://formsubmit.co/hugochen63@gmail.com" method="POST" enctype="multipart/form-data">
+      <p class="field-hint">Looking to trade toward something in the collection (or just want a cash offer)? Attach a few photos and details and I'll follow up with a trade-in offer.</p>
+      <input type="hidden" name="_subject" value="New Trade-In Submission" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_next" id="tradeInNextInput" value="" />
+
+      <div class="form-row">
+        <label for="tradeInModelInput">Your watch (brand / model) *</label>
+        <input type="text" id="tradeInModelInput" name="Brand / Model" placeholder="e.g. Jaeger-LeCoultre Master Control Triple Date Moonphase, 37mm" required />
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="tradeInConditionSelect">Condition</label>
+          <select id="tradeInConditionSelect" name="Condition">
+            <option value="Mint">Mint</option>
+            <option value="Excellent" selected>Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="tradeInBoxSelect">Box</label>
+          <select id="tradeInBoxSelect" name="Box">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="tradeInPapersSelect">Papers</label>
+          <select id="tradeInPapersSelect" name="Papers">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="tradeInInterestSelect">Interested in</label>
+          <select id="tradeInInterestSelect" name="Interested in">
+            <option value="Cash offer">Cash offer</option>
+            <option value="Trade toward a watch on your site">Trade toward a watch on your site</option>
+            <option value="Not sure yet">Not sure yet</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="tradeInWantInput">If trading — which watch are you interested in? (optional)</label>
+        <input type="text" id="tradeInWantInput" name="Trade toward (if applicable)" placeholder="e.g. the Rolex Submariner Date listed" />
+      </div>
+      <div class="form-row">
+        <label for="tradeInDetailsInput">Description</label>
+        <textarea id="tradeInDetailsInput" name="Description" rows="3" placeholder="Service history, purchase date, known flaws, anything worth knowing"></textarea>
+      </div>
+      <div class="form-row">
+        <label for="tradeInEmailInput">Your email *</label>
+        <input type="email" id="tradeInEmailInput" name="Reply-to email" placeholder="so I can get back to you" required />
+      </div>
+      <div class="form-row">
+        <label for="tradeInPhotosInput">Photos</label>
+        <input type="file" id="tradeInPhotosInput" name="Photos" accept="image/*" multiple />
+        <p class="field-hint">A few clear photos (dial, case-back, box/papers if you have them) help a lot.</p>
+      </div>
+      <div class="modal-footer">
+        <span></span>
+        <div class="modal-footer-right">
+          <button type="button" id="tradeInCancelBtn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Trade-In</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div id="cartModalOverlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>🛒 Cart</h2>
+      <button id="closeCartBtn" class="btn btn-icon" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="cartItems"></div>
+      <p id="cartTotal" class="field-hint"></p>
+      <form id="cartForm">
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="cartEmailInput">Your email *</label>
+            <input type="email" id="cartEmailInput" placeholder="so I can get back to you" required />
+          </div>
+          <div class="form-row">
+            <label for="cartPaymentSelect">Preferred payment</label>
+            <select id="cartPaymentSelect">
+              <option value="Cash in person">Cash in person</option>
+              <option value="Venmo">Venmo</option>
+              <option value="Zelle">Zelle</option>
+              <option value="PayPal (Friends & Family)">PayPal (Friends &amp; Family)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="cartMessageInput">Message (optional)</label>
+          <textarea id="cartMessageInput" rows="3" placeholder="Anything else you'd like me to know"></textarea>
+        </div>
+        <p id="cartFormStatus" class="form-status hidden"></p>
+        <div class="modal-footer">
+          <span></span>
+          <div class="modal-footer-right">
+            <button type="button" id="cartClearBtn" class="btn btn-secondary">Clear Cart</button>
+            <button type="submit" id="cartSubmitBtn" class="btn btn-primary">Request to Purchase</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="app.js?v=6"></script>
+</body>
+</html>
