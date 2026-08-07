@@ -1,0 +1,11 @@
+# Tells Cloudflare's static-asset uploader (wrangler) which files NOT to publish.
+# Without this, it uploads everything in the repo checkout, including .git internals.
+.git
+.git/**
+.wrangler
+.wrangler/**
+node_modules
+node_modules/**
+.gitignore
+.assetsignore
+wrangler.jsonc
