@@ -14,6 +14,49 @@ const FAVORITES_KEY = "watchCollection.favorites";
 const CART_KEY = "watchCollection.cart";
 const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // "New Arrival" badge window
 
+// ---- Editable site copy ----
+// Every string here can be changed by the owner from the site itself (⋮ menu ->
+// "Edit Site Text") with zero coding — no HTML/formatting allowed on purpose, so it's
+// impossible to break the layout by editing text. Overrides live in localStorage under
+// CONTENT_KEY; these are just the fallback/default values.
+const CONTENT_KEY = "watchCollection.content";
+const DEFAULT_CONTENT = {
+  siteTitle: "Hugo's NYC Watch Project",
+  shippingLabel: "Free Shipping",
+  paymentMethods: "Cash in person · Venmo · Zelle · PayPal (Friends & Family)",
+  footerText: "© 2026 Hugo Chen. All rights reserved. Listings subject to prior sale. Prices in USD.",
+  meetupNote: "📍 NYC meetups available & encouraged",
+  shippingNote: "🚚 Free shipping",
+  aboutBody:
+    "Hi, I'm Hugo 👋 — I split my time between Taiwan and the US, and I'm currently a student at NYU Stern.\n\n" +
+    "I've been deeply into watches for years — researching movements, references, and market values obsessively before every purchase (and every sale). Watches here aren't flipped sight-unseen; I do my homework on each piece.\n\n" +
+    "Authenticity guaranteed on everything listed — every watch is personally inspected and verified by me before it goes up.\n\n" +
+    "Free shipping on all sales, and NYC meetups are always welcome if you'd rather see a piece in person.\n\n" +
+    "Questions on anything here? Reach out any time:",
+  coffeeBody:
+    "If you're in NYC, let's grab a coffee — my treat — and talk watches. Whether you're curious about a piece, want a second opinion, or just love the hobby, I'm always happy to meet up.\n\n" +
+    "Reach out and we'll find a time:",
+  sellBody:
+    "Thinking about selling? Send a few photos (dial, case-back, and box/papers if you have them) over email or Instagram DM, and I'll get back to you with a fair, no-obligation price estimate — usually within a day.\n\n" +
+    "Since I'm based in NYC, a face-to-face meetup is easy and convenient — you can hand it over in person and get paid on the spot, no shipping risk on your end.\n\n" +
+    "Send photos here:",
+  tradeInIntro:
+    "Looking to trade toward something in the collection (or just want a cash offer)? Attach a few photos and details and I'll follow up with a trade-in offer.",
+  sourceIntro:
+    "Looking for something specific? Tell me what you want and I'll keep an eye out — this goes straight to my inbox.",
+  faqRaw:
+    "Q: How do I know a watch is authentic?\n" +
+    "A: Every watch is personally inspected and verified by me before it's listed — see the About Me section for my background. I also have an active trading history on eBay if you'd like to see my track record.\n\n" +
+    "Q: What condition are the watches in?\n" +
+    "A: Each listing shows a condition rating (Mint / Excellent / Good / Fair) plus notes on wear, service history, and anything else worth knowing.\n\n" +
+    "Q: Do you ship, or can we meet in person?\n" +
+    "A: Both. Free shipping is included on every sale, and since I'm based in NYC, in-person meetups are easy and encouraged if you'd rather inspect the watch and pay on the spot.\n\n" +
+    "Q: What payment methods do you accept?\n" +
+    "A: Venmo, Zelle, PayPal (Friends & Family), or cash for in-person meetups.\n\n" +
+    "Q: Do you buy watches or help me find one?\n" +
+    "A: Yes to both — see \"Sell Your Watch\" if you're looking to sell, or \"Source a Watch\" if you're hunting for something specific.",
+};
+
 // Owner-only gate for Add/Edit/Delete/Import. This is CLIENT-SIDE ONLY — anyone who reads
 // the page source can see this passcode, so it deters casual visitors but is not real
 // security. Change it before you publish this site.
@@ -30,6 +73,7 @@ let cart = loadCart(); // Set of watch ids, this-browser-only
 let showFavoritesOnly = false;
 let viewGalleryIndex = 0; // active photo index inside the open View Watch modal
 let currentOfferWatchId = null; // which watch the open Make an Offer modal targets
+let content = loadContent();
 
 // ---- Elements ----
 const grid = document.getElementById("grid");
@@ -149,6 +193,43 @@ const cartClearBtn = document.getElementById("cartClearBtn");
 const cartSubmitBtn = document.getElementById("cartSubmitBtn");
 const cartFormStatus = document.getElementById("cartFormStatus");
 
+// Elements whose text comes from `content` (see Editable site copy above)
+const siteTitleH1 = document.getElementById("siteTitleH1");
+const shippingLabelText = document.getElementById("shippingLabelText");
+const paymentMethodsText = document.getElementById("paymentMethodsText");
+const footerTextEl = document.getElementById("footerText");
+const aboutBodyContent = document.getElementById("aboutBodyContent");
+const coffeeBodyContent = document.getElementById("coffeeBodyContent");
+const sellBodyContent = document.getElementById("sellBodyContent");
+const tradeInIntroText = document.getElementById("tradeInIntroText");
+const sourceIntroText = document.getElementById("sourceIntroText");
+const faqContent = document.getElementById("faqContent");
+const viewMeetupNote = document.getElementById("viewMeetupNote");
+const viewShippingNote = document.getElementById("viewShippingNote");
+
+// Edit Site Text modal (owner-only)
+const editTextBtn = document.getElementById("editTextBtn");
+const textEditModalOverlay = document.getElementById("textEditModalOverlay");
+const closeTextEditBtn = document.getElementById("closeTextEditBtn");
+const cancelTextEditBtn = document.getElementById("cancelTextEditBtn");
+const saveTextBtn = document.getElementById("saveTextBtn");
+const resetTextBtn = document.getElementById("resetTextBtn");
+const textEditStatus = document.getElementById("textEditStatus");
+const CONTENT_FIELD_IDS = {
+  siteTitle: "ctSiteTitle",
+  shippingLabel: "ctShippingLabel",
+  paymentMethods: "ctPaymentMethods",
+  footerText: "ctFooterText",
+  meetupNote: "ctMeetupNote",
+  shippingNote: "ctShippingNote",
+  aboutBody: "ctAboutBody",
+  coffeeBody: "ctCoffeeBody",
+  sellBody: "ctSellBody",
+  tradeInIntro: "ctTradeInIntro",
+  sourceIntro: "ctSourceIntro",
+  faqRaw: "ctFaqRaw",
+};
+
 // ---- Storage ----
 function loadWatches() {
   try {
@@ -215,6 +296,69 @@ function toggleCart(id) {
   if (cart.has(id)) cart.delete(id);
   else cart.add(id);
   saveCart();
+}
+
+// ---- Editable site copy ----
+function loadContent() {
+  try {
+    const raw = localStorage.getItem(CONTENT_KEY);
+    return { ...DEFAULT_CONTENT, ...(raw ? JSON.parse(raw) : {}) };
+  } catch (e) {
+    return { ...DEFAULT_CONTENT };
+  }
+}
+
+function saveContent() {
+  localStorage.setItem(CONTENT_KEY, JSON.stringify(content));
+}
+
+// Renders plain text as paragraphs (blank line = new paragraph). Uses textContent only —
+// no HTML is ever interpreted, so there's no way for typed text to break the layout.
+function renderParagraphs(container, text) {
+  container.innerHTML = "";
+  const paragraphs = String(text || "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  for (const p of paragraphs) {
+    const el = document.createElement("p");
+    el.textContent = p;
+    container.appendChild(el);
+  }
+}
+
+// Parses the "Q: ...\nA: ...\n\nQ: ...\nA: ..." format into <details> blocks.
+function renderFaq(container, raw) {
+  container.innerHTML = "";
+  const blocks = String(raw || "").split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  blocks.forEach((block, i) => {
+    const qMatch = block.match(/^Q:\s*([\s\S]*?)\nA:\s*([\s\S]*)$/i);
+    if (!qMatch) return; // silently skip malformed blocks rather than breaking the page
+    const [, question, answer] = qMatch;
+    const details = document.createElement("details");
+    if (i === 0) details.open = true;
+    const summary = document.createElement("summary");
+    summary.textContent = question.trim();
+    const p = document.createElement("p");
+    p.textContent = answer.trim();
+    details.appendChild(summary);
+    details.appendChild(p);
+    container.appendChild(details);
+  });
+}
+
+// Pushes `content` into every part of the page that displays it.
+function applyContent() {
+  document.title = content.siteTitle;
+  siteTitleH1.textContent = content.siteTitle;
+  shippingLabelText.textContent = content.shippingLabel;
+  paymentMethodsText.textContent = content.paymentMethods;
+  footerTextEl.textContent = content.footerText;
+  renderParagraphs(aboutBodyContent, content.aboutBody);
+  renderParagraphs(coffeeBodyContent, content.coffeeBody);
+  renderParagraphs(sellBodyContent, content.sellBody);
+  tradeInIntroText.textContent = content.tradeInIntro;
+  sourceIntroText.textContent = content.sourceIntro;
+  renderFaq(faqContent, content.faqRaw);
+  viewMeetupNote.textContent = content.meetupNote;
+  viewShippingNote.textContent = content.shippingNote;
 }
 
 // ---- Theme ----
@@ -451,8 +595,8 @@ function render() {
         <span class="badge ${badgeClass(w.box)}">Box: ${w.box}</span>
         <span class="badge ${badgeClass(w.papers)}">Papers: ${w.papers}</span>
       </div>
-      <div class="meetup-note">📍 <strong>NYC meetups available &amp; encouraged</strong></div>
-      <div class="shipping-note">🚚 <strong>Free shipping</strong></div>
+      <div class="meetup-note">${escapeHtml(content.meetupNote)}</div>
+      <div class="shipping-note">${escapeHtml(content.shippingNote)}</div>
     `;
 
     // Contact chips should open mail/Instagram/eBay, not trigger the card's click-through.
@@ -586,7 +730,55 @@ wireSimpleModal(sellBtn, sellModalOverlay, closeSellBtn);
 wireSimpleModal(sourceBtn, sourceModalOverlay, closeSourceBtn);
 wireSimpleModal(faqBtn, faqModalOverlay, closeFaqBtn);
 sourceCancelBtn.addEventListener("click", () => sourceModalOverlay.classList.add("hidden"));
-const simpleOverlays = [aboutModalOverlay, coffeeModalOverlay, sellModalOverlay, sourceModalOverlay, faqModalOverlay, viewModalOverlay, offerModalOverlay, cartModalOverlay, tradeInModalOverlay];
+const simpleOverlays = [aboutModalOverlay, coffeeModalOverlay, sellModalOverlay, sourceModalOverlay, faqModalOverlay, viewModalOverlay, offerModalOverlay, cartModalOverlay, tradeInModalOverlay, textEditModalOverlay];
+
+// ---- Edit Site Text modal (owner-only) ----
+function openTextEditModal() {
+  if (!isOwner) return;
+  for (const [key, id] of Object.entries(CONTENT_FIELD_IDS)) {
+    document.getElementById(id).value = content[key];
+  }
+  textEditStatus.classList.add("hidden");
+  menuDropdown.classList.add("hidden");
+  textEditModalOverlay.classList.remove("hidden");
+}
+
+function setTextEditStatus(message, kind) {
+  textEditStatus.textContent = message;
+  textEditStatus.className = "form-status" + (kind ? ` form-status-${kind}` : "");
+  textEditStatus.classList.toggle("hidden", !message);
+}
+
+editTextBtn.addEventListener("click", openTextEditModal);
+closeTextEditBtn.addEventListener("click", () => textEditModalOverlay.classList.add("hidden"));
+cancelTextEditBtn.addEventListener("click", () => textEditModalOverlay.classList.add("hidden"));
+textEditModalOverlay.addEventListener("click", (e) => {
+  if (e.target === textEditModalOverlay) textEditModalOverlay.classList.add("hidden");
+});
+
+saveTextBtn.addEventListener("click", () => {
+  if (!isOwner) return;
+  for (const [key, id] of Object.entries(CONTENT_FIELD_IDS)) {
+    content[key] = document.getElementById(id).value;
+  }
+  saveContent();
+  applyContent();
+  render();
+  setTextEditStatus("✅ Saved — updated on this browser now.", "success");
+});
+
+resetTextBtn.addEventListener("click", () => {
+  if (!isOwner) return;
+  if (!confirm("Reset ALL site text back to the original defaults? This can't be undone.")) return;
+  localStorage.removeItem(CONTENT_KEY);
+  content = { ...DEFAULT_CONTENT };
+  applyContent();
+  render();
+  for (const [key, id] of Object.entries(CONTENT_FIELD_IDS)) {
+    document.getElementById(id).value = content[key];
+  }
+  setTextEditStatus("↩️ Reset to default text.", "success");
+});
 
 // ---- View Watch modal (guest-facing read-only detail view; shareable via #watch=<id>) ----
 function buildWatchShareUrl(id) {
@@ -1110,6 +1302,7 @@ importInput.addEventListener("change", () => {
 function updateOwnerUI() {
   addBtn.classList.toggle("hidden", !isOwner);
   importLabel.classList.toggle("hidden", !isOwner);
+  editTextBtn.classList.toggle("hidden", !isOwner);
   ownerToggleBtn.textContent = isOwner ? "🔓 Log Out (Owner)" : "🔐 Owner Login";
   render();
 }
@@ -1136,6 +1329,7 @@ ownerToggleBtn.addEventListener("click", () => {
 
 // ---- Init ----
 initTheme();
+applyContent();
 updateOwnerUI();
 updateCartUI();
 

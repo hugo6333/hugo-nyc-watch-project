@@ -838,6 +838,7 @@ html, body {
 
 /* View Watch modal */
 .view-modal { max-width: 640px; }
+.text-edit-modal { max-width: 620px; }
 .view-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
