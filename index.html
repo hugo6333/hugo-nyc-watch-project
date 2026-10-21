@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Hugo's NYC Watch Project</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⌚</text></svg>" />
-<link rel="stylesheet" href="styles.css?v=10" />
+<link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body>
 <div class="app">
@@ -62,6 +62,8 @@
       <option value="price-desc">Price (high to low)</option>
       <option value="price-asc">Price (low to high)</option>
     </select>
+    <button id="filtersToggleBtn" class="btn btn-secondary filters-toggle" type="button" aria-expanded="false" aria-controls="filterGroup">Filters</button>
+    <div class="filter-group" id="filterGroup">
     <select id="filterBox">
       <option value="">All box status</option>
       <option value="Yes">Box: Yes</option>
@@ -94,6 +96,7 @@
       <option value="15000-25000">$15,000 – $25,000</option>
       <option value="25000-">$25,000+</option>
     </select>
+    </div>
     <button id="favoritesToggleBtn" class="btn btn-secondary" type="button">🤍 Favorites</button>
   </section>
 
@@ -602,6 +605,6 @@
   </div>
 </div>
 
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

@@ -1340,3 +1340,15 @@ updateCartUI();
   const id = decodeURIComponent(match[1]);
   if (watches.some((w) => w.id === id)) openViewModal(id);
 })();
+
+// Mobile: the filter dropdowns collapse behind a "Filters" button (CSS hides the button on desktop).
+(() => {
+  const btn = document.getElementById("filtersToggleBtn");
+  const group = document.getElementById("filterGroup");
+  if (!btn || !group) return;
+  btn.addEventListener("click", () => {
+    const open = group.classList.toggle("is-open");
+    btn.classList.toggle("is-active", open);
+    btn.setAttribute("aria-expanded", String(open));
+  });
+})();

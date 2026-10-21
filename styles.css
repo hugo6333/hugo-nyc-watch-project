@@ -275,6 +275,8 @@ html, body {
 .toolbar input[type="search"] {
   flex: 1 1 240px;
 }
+.filter-group { display: contents; }
+.filters-toggle { display: none; }
 .toolbar input,
 .toolbar select {
   font-family: inherit;
@@ -873,4 +875,104 @@ html, body {
 @media (max-width: 480px) {
   .form-grid { grid-template-columns: 1fr; }
   .topbar h1 { font-size: 17px; }
+}
+
+/* ---------- Phone layout ---------- */
+html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+
+@media (max-width: 640px) {
+  .app { padding: 14px 12px 28px; }
+
+  /* Header: title, then contact, then a tidy grid of buttons */
+  .topbar { gap: 10px; margin-bottom: 14px; }
+  .topbar-top { flex-direction: column; align-items: stretch; gap: 10px; }
+  .topbar h1 { font-size: 18px; line-height: 1.2; }
+  .topbar-right { flex-direction: column; align-items: stretch; gap: 8px; }
+  .contact-box {
+    white-space: normal;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-radius: 14px;
+    gap: 4px 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+  }
+  .topbar-right .btn { width: 100%; }
+
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .topbar-actions .btn {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  #addBtn { grid-column: 1 / -1; }
+  /* The more-options button sits in the top-right corner beside the title */
+  .topbar { position: relative; }
+  .topbar-actions { position: static; }
+  .topbar-actions .menu { position: absolute; top: 0; right: 0; display: flex; }
+  .topbar-actions .menu .btn-icon { width: 42px; min-height: 42px; font-size: 20px; }
+  .brand { padding-right: 52px; min-height: 42px; }
+  .menu-dropdown { min-width: 200px; }
+  .menu-dropdown button,
+  .menu-dropdown label { padding: 12px 12px; font-size: 14.5px; }
+
+  /* Search and filters */
+  .toolbar { gap: 8px; margin-bottom: 12px; }
+  .toolbar input,
+  .toolbar select { font-size: 16px; min-height: 42px; } /* 16px stops iOS zooming on focus */
+  .toolbar input[type="search"] { flex: 1 1 100%; order: 1; }
+  #sortSelect { flex: 1 1 100%; order: 2; }
+  .filters-toggle { display: block; flex: 1 1 0; order: 3; min-height: 42px; }
+  #favoritesToggleBtn { flex: 1 1 0; order: 4; min-height: 42px; }
+  .filter-group {
+    display: none;
+    order: 5;
+    flex: 1 1 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .filter-group.is-open { display: grid; }
+  .filter-group select { width: 100%; min-width: 0; }
+
+  .stats { gap: 6px 14px; margin-bottom: 14px; font-size: 12.5px; }
+
+  /* Two cards across */
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .card-body { padding: 9px 10px 11px; gap: 4px; }
+  .card-model { font-size: 13.5px; overflow-wrap: anywhere; }
+  .card-brand { font-size: 10px; }
+  .card-meta { font-size: 11.5px; }
+  .card-price { font-size: 14px; }
+  .price-row { flex-wrap: wrap; }
+  .badge { font-size: 10px; padding: 2px 6px; }
+  .sale-flag { top: 7px; left: 7px; font-size: 9.5px; padding: 3px 7px; }
+  .favorite-btn { top: 7px; right: 7px; width: 34px; height: 34px; }
+  .img-nav { width: 32px; height: 32px; }
+  .sold-watermark { font-size: 16px; padding: 4px 14px; letter-spacing: 2px; }
+  .contact-chip { width: 30px; height: 30px; }
+
+  /* Banners and footer */
+  .trust-banner { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .trust-sep { display: none; }
+
+  /* Modals fill the screen width */
+  .modal-overlay { padding: 12px 8px; }
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 16px; gap: 14px; }
+  .form-row input,
+  .form-row select,
+  .form-row textarea { font-size: 16px; }
+  .modal-footer { flex-wrap: wrap; gap: 10px; }
+  .modal-footer-right { flex: 1 1 auto; justify-content: flex-end; }
+  .view-actions .btn { flex: 1 1 auto; }
+}
+
+@media (max-width: 360px) {
+  .grid { grid-template-columns: 1fr; }
 }
